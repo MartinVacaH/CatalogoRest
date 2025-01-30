@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: API de Artículos
+  description: API para consultar y actualizar artículos en el catálogo.
+  version: 1.0.0
+
+servers:
+  - url: https://{host}
+    description: API desplegada en GCP Cloud Run
+    variables:
+      host:
+        default: articulo-api-xxxxxx.run.app
+        description: URL base de la API en Cloud Run
+
+paths:
+  /articulos/{id}:
+    get:
+      summary: Obtiene un artículo por su ID
+      description: Devuelve los datos de un artículo en base a su ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del artículo (10 caracteres alfanuméricos)
+          schema:
+            type: string
+            maxLength: 10
+      responses:
+        "200":
+          description: Datos del artículo encontrados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Articulo"
+        "404":
+          description: Artículo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    
+    put:
+      summary: Actualiza un artículo
+      description: Permite actualizar la descripción y el modelo del artículo.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del artículo
+          schema:
+            type: string
+            maxLength: 10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticuloUpdate"
+      responses:
+        "200":
+          description: Artículo actualizado correctamente
+        "201":
+          description: Artículo actualizado (mejor práctica REST)
+        "400":
+          description: Error en la solicitud
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Artículo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    Articulo:
+      type: object
+      required: [id, nombre, descripcion, precio, modelo]
+      properties:
+        id:
+          type: string
+          description: Clave única del artículo
+          maxLength: 10
+        nombre:
+          type: string
+          description: Nombre del artículo
+          maxLength: 20
+        descripcion:
+          type: string
+          description: Descripción general del producto
+          maxLength: 200
+        precio:
+          type: number
+          format: float
+          description: Precio del artículo con dos decimales
+        modelo:
+          type: string
+          description: Modelo del producto
+          maxLength: 10
+
+    ArticuloUpdate:
+      type: object
+      required: [descripcion, modelo]
+      properties:
+        descripcion:
+          type: string
+          description: Nueva descripción del artículo
+          maxLength: 200
+        modelo:
+          type: string
+          description: Nuevo modelo del artículo
+          maxLength: 10
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Código de error HTTP
+        message:
+          type: string
+          description: Mensaje descriptivo del error
